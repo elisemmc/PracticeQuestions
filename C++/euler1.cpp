@@ -6,7 +6,20 @@
 */
 
 #include <stdio.h>
-#include <euler1.h>
+#include "euler1.h"
+
+int sumMultiples(int A) {
+    int i = 0;
+    int sum = 0;
+
+    for( i = 0; i < A; i++ ){
+        if( ( i % 3 == 0 ) || ( i % 5 == 0 ) ){
+            sum += i;
+        }
+    }
+
+    return sum;
+}
 
 int main() {
 

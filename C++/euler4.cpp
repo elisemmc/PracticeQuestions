@@ -1,7 +1,10 @@
-#include <string>
-#include <algorithm>
-#include <cmath>
+/*
+A palindromic number reads the same both ways. The largest palindrome made from the product of two 2-digit numbers is 9009 = 91 × 99.
 
+Find the largest palindrome made from the product of two 3-digit numbers.
+*/
+#include <cmath>
+#include <stdio.h>
 #include "euler4.h"
 
 int largestPalindrome(int A){
@@ -29,3 +32,9 @@ bool isPalindrome(std::string S){
     return false;
 }
 
+int main() {
+    printf( "Answer: %i", largestPalindrome( 3 ) );
+    printf( "\n" );
+
+    return(0);
+}
