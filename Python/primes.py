@@ -4,6 +4,7 @@ class primes:
     # SHOULD CHECK IF PRIMES.CSV EXISTS
     with open('primes.csv', 'r') as f:
         read_data = f.read()
+
     primesList = [int(elem) for elem in read_data.split(',')]
 
     def __init__(self):
@@ -30,7 +31,24 @@ class primes:
         while( self.primesList[-1] < val ):
             self.appendNext()
         return [ elem for elem in self.primesList if elem < val ]
-    
+
+    def getPrimeFactorization(self, val):
+        return self.primeFactorization(val, self.primesList)
+
+    def primeFactorization(self, val, primes):
+        primes = [ elem for elem in primes if elem <= val ]
+        if val in primes:
+            return [ val ]
+        else:
+            for p in primes:
+                if val % p == 0:
+                    return [p] + self.primeFactorization(val/p, primes)
+        
+        while val > self.primesList:
+            self.appendNext()
+            if val % self.primesList[-1] == 0:
+                return [p] + self.primeFactorization(val/p, primes)
+
     def appendNext(self):
         start = self.primesList[-1] + 2
         while any([ start%elem == 0 for elem in self.primesList ]):
@@ -41,3 +59,7 @@ class primes:
 
         self.primesList.append(start)
         return
+
+if __name__ == "__main__":
+    p = primes()
+    print p.getPrimeFactorization(500)

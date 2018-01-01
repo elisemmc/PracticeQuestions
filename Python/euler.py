@@ -1,7 +1,18 @@
 # -*- coding: utf-8 -*-
 import math
 import numpy
+import itertools
 from primes import primes
+from collections import Counter
+
+class Memoize:
+    def __init__(self, fn):
+        self.fn = fn
+        self.memo = {}
+    def __call__(self, *args):
+        if args not in self.memo:
+            self.memo[args] = self.fn(*args)
+        return self.memo[args]
 
 # If we list all the natural numbers below 10 that are multiples of 3 or 5, we get 3, 5, 6 and 9. The sum of these multiples is 23.
 # Find the sum of all the multiples of 3 or 5 below 1000.
@@ -181,27 +192,26 @@ def euler11():
 # We can see that 28 is the first triangle number to have over five divisors.
 # What is the value of the first triangle number to have over five hundred divisors?
 def euler12():
-    nextNatural = 9337
-    triangleNumber = 43585116
+    # nextNatural = 12375
+    # triangleNumber = 76564125
     desiredDivisors = 500
     # generate traingle number
     while True:
         triangleNumber = triangleNumber + nextNatural
         nextNatural = nextNatural + 1
-        divisors = findNumberOfDivisors(triangleNumber)
+        divisors = getNumberOfDivisors(triangleNumber)
         print str(triangleNumber) + ':' + str(nextNatural) + ':' + str(divisors)
         if divisors > desiredDivisors:
             return triangleNumber
 
-def findNumberOfDivisors( number ):
-    numberOfDivisors = 0
-    for i in range(1,number+1):
-        if number%i == 0:
-            numberOfDivisors = numberOfDivisors + 1
-    return numberOfDivisors
-
 def getNumberOfDivisors( num ):
-    pass
+    numDivisors = 1
+    p = primes()
+    factorization = p.getPrimeFactorization(num)
+    counter = Counter(factorization)
+    for v in counter.values():
+        numDivisors = numDivisors * (v+1)
+    return numDivisors
 
 # Work out the first ten digits of the sum of the following one-hundred 50-digit numbers.
 def euler13():
@@ -224,15 +234,58 @@ def euler14():
     maxLength = 0
     maxI = 0
     numsToCheck = range(1,1000000)
-    while len(numsToCheck) > 0:
-        num = numsToCheck.pop()
-        collatzSeq = s.getCollatz(num)
-        length = len(collatzSeq)
-        if length > maxLength:
-            maxLength = length
-            maxI = num
-        numsToCheck = [ elem for elem in numsToCheck if elem not in collatzSeq ]
-    return maxI
+    return nextCollatzArray(numsToCheck)
+
+    # for i in numsToCheck:
+    #     print str(i) + ': ' + str(s.getCollatz(i))
+    # return collatzReducer(numsToCheck, [1.])
+    # while len(numsToCheck) > 0:
+    #     num = numsToCheck.pop()
+    #     collatzSeq = s.getCollatz(num)
+    #     length = len(collatzSeq)
+    #     if length > maxLength:
+    #         maxLength = length
+    #         maxI = num
+    #     numsToCheck = [ elem for elem in numsToCheck if elem not in collatzSeq ]
+    # return maxI
+
+def nextCollatzArray(array):
+    arr = [ [elem, elem] for elem in array ]
+    length = len(arr)
+    while length > 1:
+        for i in range(length):
+            arr[i] = [ arr[i][0], nextCollatzNum( arr[i][1]) ]
+        arr = [ elem for elem in arr if elem[1] ]
+        length = len(arr)
+        print length
+    return arr[0][0]
+     
+def nextCollatzNum(num):
+    if num == 1:
+        return None
+    elif num%2 == 0:
+        return num/2
+    else:
+        return 3*num+1            
+
+def collatzReducer(numsToCheck, prevNums):
+    uncheckedNums = [ elem for elem in numsToCheck if elem not in prevNums ]
+    uncheckedLength = len(uncheckedNums)
+    print uncheckedLength
+    if uncheckedLength == 0:
+        return numsToCheck
+    else:
+        nextNums = nextCollatzNumbers(prevNums)
+        return collatzReducer(uncheckedNums, nextNums)
+
+def nextCollatzNumbers(prevNums):
+    array = []
+    for elem in prevNums:
+        array.append(elem*2)
+        checkVal = (elem-1)/3
+        if( checkVal.is_integer() and checkVal%2 and checkVal > 1 ):
+            array.append(checkVal)
+    return array
 
 class collatz:
     dCollatz = {}
@@ -253,7 +306,6 @@ class collatz:
 
     def getCollatzLength(self, num):
         if num in self.dLength.keys():
-            # print str(num) + ' in dictionary'
             return self.dLength[num]
         if num:
             length = 1 + self.getCollatzLength(self.nextCollatzNum(num))
@@ -270,5 +322,313 @@ class collatz:
         else:
             return 3*num+1
 
+# 2^15 = 32768 and the sum of its digits is 3 + 2 + 7 + 6 + 8 = 26.
+# What is the sum of the digits of the number 2^1000?
+def euler16():
+    return sum([int(elem) for elem in str(2**1000)])
+
+# If the numbers 1 to 5 are written out in words: one, two, three, four, five, then there are 3 + 3 + 5 + 4 + 4 = 19 letters used in total.
+# If all the numbers from 1 to 1000 (one thousand) inclusive were written out in words, how many letters would be used?
+# NOTE: Do not count spaces or hyphens. For example, 342 (three hundred and forty-two) contains 23 letters and 115 (one hundred and fifteen) contains 20 letters. The use of "and" when writing out numbers is in compliance with British usage.
+def euler17():
+    count = 0
+    for i in range(1,1001):
+        s = getNumString(i).replace(' ', '').replace('-', '')
+        print s
+        count = count + len(s)
+    return count
+
+def fourIsCosmic():
+    print 'You are playing four is cosmic'
+    while True: 
+        num = input('Please input a number between 1 and 9999: ')
+        print 'Starting at: ' + str(num)
+        s = str(num)
+        while num != 4:
+            num = len(getNumString(num).replace(' ', '').replace('-', ''))
+            s = s + ' -> ' + str(num)
+        s = s + ' and 4 is cosmic'
+        print s
+
+def getNumString(num):
+    d = {
+        1: 'one',
+        2: 'two',
+        3: 'three',
+        4: 'four',
+        5: 'five',
+        6: 'six',
+        7: 'seven',
+        8: 'eight',
+        9: 'nine',
+        10: 'ten',
+        11: 'eleven',
+        12: 'twelve',
+        13: 'thirteen',
+        14: 'fourteen',
+        15: 'fifteen',
+        16: 'sixteen',
+        17: 'seventeen',
+        18: 'eighteen',
+        19: 'nineteen',
+        20: 'twenty',
+        30: 'thirty',
+        40: 'forty',
+        50: 'fifty',
+        60: 'sixty',
+        70: 'seventy',
+        80: 'eighty',
+        90: 'ninety'
+    }
+    s = ''
+    if num in d:
+        return d[num]
+    if num >= 1000:
+        s = s + d[math.floor(num/1000)] + ' thousand '
+    if num % 1000 >= 100:
+        s = s + d[math.floor(num%1000/100)] + ' hundred'
+        if num % 100 != 0:
+            s = s + ' and '
+    if num % 100 in d:
+        s = s + d[ num % 100 ]
+    elif num % 100 >= 20:
+        s = s + d[math.floor((num%100)-(num%10))] + '-'
+        s = s + d[ num % 10 ]
+    return s.strip()
+
+# By starting at the top of the triangle below and moving to adjacent numbers on the row below, the maximum total from top to bottom is 23.
+# 3
+# 7 4
+# 2 4 6
+# 8 5 9 3
+# That is, 3 + 7 + 4 + 9 = 23.
+# Find the maximum total from top to bottom of the triangle below (euler18.d):
+# NOTE: As there are only 16384 routes, it is possible to solve this problem by trying every route. However, Problem 67, is the same challenge with a triangle containing one-hundred rows; it cannot be solved by brute force, and requires a clever method! ;o)
+def euler18():
+    array = []
+    with open('euler18.d', 'r') as f:
+        array = []
+        for line in f:
+            array.append( [int(elem) for elem in line.split()] )
+    return findMaxPath(array, 0, 0)
+
+def findMaxPath(array, x, y):
+    if y >= ( len( array ) - 1 ):
+        return array[y][x]
+    else:
+        return array[y][x] + max( findMaxPath(array, x, y+1), findMaxPath(array, x+1, y+1) )
+
+# You are given the following information, but you may prefer to do some research for yourself.
+# 1 Jan 1900 was a Monday.
+# Thirty days has September,
+# April, June and November.
+# All the rest have thirty-one,
+# Saving February alone,
+# Which has twenty-eight, rain or shine.
+# And on leap years, twenty-nine.
+# A leap year occurs on any year evenly divisible by 4, but not on a century unless it is divisible by 400.
+# How many Sundays fell on the first of the month during the twentieth century (1 Jan 1901 to 31 Dec 2000)?
+def euler19():
+    d = date( 1, 0, 1900, 1 )
+    sundayCount = 0
+
+    while d.year <= 2000:
+        d.getNextDay()
+        # print d
+        if d.year > 1900 and d.isSundayTheFirst():
+            sundayCount = sundayCount + 1
+
+    return sundayCount
+
+class date:
+    def __init__(self, day, month, year, weekday):
+        self.day = day
+        self.month = month
+        self.year = year
+        self.weekday = weekday
+
+    def __str__(self):
+        weekdays = {
+            0: 'Sunday',
+            1: 'Monday',
+            2: 'Tuesday',
+            3: 'Wednesday',
+            4: 'Thursday',
+            5: 'Friday',
+            6: 'Saturday'
+        }
+        months = {
+            0: 'January',
+            1: 'February',
+            2: 'March',
+            3: 'April',
+            4: 'May',
+            5: 'June',
+            6: 'July',
+            7: 'August',
+            8: 'September',
+            9: 'October',
+            10: 'November',
+            11: 'December'
+        }
+        return weekdays[self.weekday] + ', ' + months[self.month] + ' ' + str(self.day) + ', ' + str(self.year)
+
+    def getNextDay(self):
+        self.weekday = ( self.weekday + 1 ) % 7
+        
+        if self.year % 4 == 0 and ( self.year % 100 != 0 or self.year % 400 == 0 ):
+            isLeapYear = True
+        else:
+            isLeapYear = False
+        
+        if self.day == 31 and self.month == 11:
+            self.day = 1
+            self.month = 0
+            self.year = self.year + 1
+        elif self.month == 1 and ( self.day == 28 and not isLeapYear or self.day == 29 and isLeapYear ):
+            self.day = 1
+            self.month = self.month + 1
+        elif self.day == 30 and self.month in [3,5,8,10]:
+            self.day = 1
+            self.month = self.month + 1
+        elif self.day == 31:
+            self.day = 1
+            self.month = self.month + 1
+        else: 
+            self.day = self.day + 1
+
+    def isSundayTheFirst(self):
+        return self.weekday == 0 and self.day == 1
+
+# n! means n × (n − 1) × ... × 3 × 2 × 1
+# For example, 10! = 10 × 9 × ... × 3 × 2 × 1 = 3628800,
+# and the sum of the digits in the number 10! is 3 + 6 + 2 + 8 + 8 + 0 + 0 = 27.
+# Find the sum of the digits in the number 100!
+def euler20():
+    return sum( [int(elem) for elem in str( factorial(100) ) ] )
+
+def factorial(num):
+    if num == 1:
+        return 1
+    else:
+        return num * factorial(num-1)
+
+# Let d(n) be defined as the sum of proper divisors of n (numbers less than n which divide evenly into n).
+# If d(a) = b and d(b) = a, where a ≠ b, then a and b are an amicable pair and each of a and b are called amicable numbers.
+# For example, the proper divisors of 220 are 1, 2, 4, 5, 10, 11, 20, 22, 44, 55 and 110; therefore d(220) = 284. The proper divisors of 284 are 1, 2, 4, 71 and 142; so d(284) = 220.
+# Evaluate the sum of all the amicable numbers under 10000.
+def euler21():
+    array = range(2,10000)
+    amicableNumbers = []
+    for elem in array:
+        pairNum = sum(getDivisors(elem))
+        pairDivSum = sum(getDivisors(pairNum))
+        if pairNum != elem and pairDivSum == elem:
+            amicableNumbers.append((elem, pairNum))
+    return sum( [ elem[0] for elem in amicableNumbers ] )
+
+def getDivisors(num):
+    i = 2
+    divisors = [1]
+    while i < math.sqrt(num):
+        if num % i == 0:
+            divisors.append(i)
+            divisors.append(num/i)
+        i = i + 1
+    divisors.sort()
+    return divisors
+
+# Using names.txt (right click and 'Save Link/Target As...'), a 46K text file containing over five-thousand first names, begin by sorting it into alphabetical order. Then working out the alphabetical value for each name, multiply this value by its alphabetical position in the list to obtain a name score.
+# For example, when the list is sorted into alphabetical order, COLIN, which is worth 3 + 15 + 12 + 9 + 14 = 53, is the 938th name in the list. So, COLIN would obtain a score of 938 × 53 = 49714.
+# What is the total of all the name scores in the file?
+def euler22():
+    with open('euler22.d', 'r') as f:
+        data = f.read()
+    sortedNames = data.split(',')
+    sortedNames = [ elem[1:-1] for elem in sortedNames ]
+    sortedNames.sort()
+    
+    scoreSum = 0
+    for i, v in enumerate(sortedNames):
+        scoreSum = scoreSum + getNameScore(v) * ( i + 1 )
+    return scoreSum
+
+def getNameScore(name):
+    name.upper()
+    return sum( [ ord(elem) - ord('A') + 1 for elem in name ] )
+
+# A perfect number is a number for which the sum of its proper divisors is exactly equal to the number. For example, the sum of the proper divisors of 28 would be 1 + 2 + 4 + 7 + 14 = 28, which means that 28 is a perfect number.
+# A number n is called deficient if the sum of its proper divisors is less than n and it is called abundant if this sum exceeds n.
+# As 12 is the smallest abundant number, 1 + 2 + 3 + 4 + 6 = 16, the smallest number that can be written as the sum of two abundant numbers is 24. By mathematical analysis, it can be shown that all integers greater than 28123 can be written as the sum of two abundant numbers. However, this upper limit cannot be reduced any further by analysis even though it is known that the greatest number that cannot be expressed as the sum of two abundant numbers is less than this limit.
+# Find the sum of all the positive integers which cannot be written as the sum of two abundant numbers.
+def euler23():
+    maxVal = 28124
+    abundantNumbers = abundantNumbersLessThan(maxVal)
+    sumNot = 0
+    for i in range(1,maxVal):
+        if not any ( [ i - elem in abundantNumbers for elem in abundantNumbers if i > elem ] ):
+            print i
+            sumNot += i
+    return sumNot
+
+def abundantNumbersLessThan(num):
+    abundantNumbers = []
+    for i in range(1,num):
+        if sum( getDivisors(i) ) > i:
+            abundantNumbers.append(i)
+    return abundantNumbers
+
+# A permutation is an ordered arrangement of objects. For example, 3124 is one possible permutation of the digits 1, 2, 3 and 4. If all of the permutations are listed numerically or alphabetically, we call it lexicographic order. The lexicographic permutations of 0, 1 and 2 are:
+# 012   021   102   120   201   210
+# What is the millionth lexicographic permutation of the digits 0, 1, 2, 3, 4, 5, 6, 7, 8 and 9?
+def euler24():
+    permutations = list(itertools.permutations([0,1,2,3,4,5,6,7,8,9]))
+    return permutations[1000000-1]
+
+# The Fibonacci sequence is defined by the recurrence relation:
+# Fn = Fn−1 + Fn−2, where F1 = 1 and F2 = 1.
+# Hence the first 12 terms will be:
+# F1 = 1
+# F2 = 1
+# F3 = 2
+# F4 = 3
+# F5 = 5
+# F6 = 8
+# F7 = 13
+# F8 = 21
+# F9 = 34
+# F10 = 55
+# F11 = 89
+# F12 = 144
+# The 12th term, F12, is the first term to contain three digits.
+# What is the index of the first term in the Fibonacci sequence to contain 1000 digits?
+def euler25():
+    prev = 0
+    curr = 1
+    i = 1
+    while len(str(curr)) < 1000:
+        temp = prev + curr
+        prev = curr
+        curr = temp
+        i += 1
+    return i
+
+# A unit fraction contains 1 in the numerator. The decimal representation of the unit fractions with denominators 2 to 10 are given:
+# 1/2	= 	0.5
+# 1/3	= 	0.(3)
+# 1/4	= 	0.25
+# 1/5	= 	0.2
+# 1/6	= 	0.1(6)
+# 1/7	= 	0.(142857)
+# 1/8	= 	0.125
+# 1/9	= 	0.(1)
+# 1/10	= 	0.1
+# Where 0.1(6) means 0.166666..., and has a 1-digit recurring cycle. It can be seen that 1/7 has a 6-digit recurring cycle.
+# Find the value of d < 1000 for which 1/d contains the longest recurring cycle in its decimal fraction part.
+def euler26():
+    print 1./7.
+    pass
+
 if __name__ == "__main__":
-    print "Euler14: " + str(euler14())
+    print euler23()
+
