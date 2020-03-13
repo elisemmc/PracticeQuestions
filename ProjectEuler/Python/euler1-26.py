@@ -2,6 +2,7 @@
 import math
 import numpy
 import itertools
+import dis
 from primes import primes
 from collections import Counter
 
@@ -192,6 +193,8 @@ def euler11():
 # We can see that 28 is the first triangle number to have over five divisors.
 # What is the value of the first triangle number to have over five hundred divisors?
 def euler12():
+    triangleNumber = 1
+    nextNatural = 2
     # nextNatural = 12375
     # triangleNumber = 76564125
     desiredDivisors = 500
@@ -200,7 +203,7 @@ def euler12():
         triangleNumber = triangleNumber + nextNatural
         nextNatural = nextNatural + 1
         divisors = getNumberOfDivisors(triangleNumber)
-        print str(triangleNumber) + ':' + str(nextNatural) + ':' + str(divisors)
+        print ( str(triangleNumber) + ':' + str(nextNatural) + ':' + str(divisors) )
         if divisors > desiredDivisors:
             return triangleNumber
 
@@ -257,7 +260,7 @@ def nextCollatzArray(array):
             arr[i] = [ arr[i][0], nextCollatzNum( arr[i][1]) ]
         arr = [ elem for elem in arr if elem[1] ]
         length = len(arr)
-        print length
+        print ( length )
     return arr[0][0]
      
 def nextCollatzNum(num):
@@ -271,7 +274,7 @@ def nextCollatzNum(num):
 def collatzReducer(numsToCheck, prevNums):
     uncheckedNums = [ elem for elem in numsToCheck if elem not in prevNums ]
     uncheckedLength = len(uncheckedNums)
-    print uncheckedLength
+    print ( uncheckedLength )
     if uncheckedLength == 0:
         return numsToCheck
     else:
@@ -334,21 +337,21 @@ def euler17():
     count = 0
     for i in range(1,1001):
         s = getNumString(i).replace(' ', '').replace('-', '')
-        print s
+        print ( s )
         count = count + len(s)
     return count
 
 def fourIsCosmic():
-    print 'You are playing four is cosmic'
+    print ( 'You are playing four is cosmic' )
     while True: 
         num = input('Please input a number between 1 and 9999: ')
-        print 'Starting at: ' + str(num)
+        print ( 'Starting at: ' + str(num) )
         s = str(num)
         while num != 4:
             num = len(getNumString(num).replace(' ', '').replace('-', ''))
             s = s + ' -> ' + str(num)
         s = s + ' and 4 is cosmic'
-        print s
+        print ( s )
 
 def getNumString(num):
     d = {
@@ -567,7 +570,7 @@ def euler23():
     sumNot = 0
     for i in range(1,maxVal):
         if not any ( [ i - elem in abundantNumbers for elem in abundantNumbers if i > elem ] ):
-            print i
+            print ( i )
             sumNot += i
     return sumNot
 
@@ -626,9 +629,11 @@ def euler25():
 # Where 0.1(6) means 0.166666..., and has a 1-digit recurring cycle. It can be seen that 1/7 has a 6-digit recurring cycle.
 # Find the value of d < 1000 for which 1/d contains the longest recurring cycle in its decimal fraction part.
 def euler26():
-    print 1./7.
+    print ( 1./7. )
     pass
 
 if __name__ == "__main__":
-    print euler23()
+    dis.dis(euler26)
+    # print euler23()
+
 

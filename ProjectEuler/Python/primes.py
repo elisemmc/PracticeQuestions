@@ -62,4 +62,4 @@ class primes:
 
 if __name__ == "__main__":
     p = primes()
-    print p.getPrimeFactorization(500)
+    print ( p.getPrimeFactorization(500) )
